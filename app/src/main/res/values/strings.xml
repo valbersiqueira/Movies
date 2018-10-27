@@ -1,0 +1,23 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Movies</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="settings">Settigns</string>
+    <string name="title_activity_main2">Main2Activity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="dt_title">Título </string>
+    <string name="dt_title_original">Título Orginal</string>
+    <string name="dt_total_votos">Total de votos </string>
+    <string name="dt_media_votos">Média </string>
+    <string name="dt_popularity">Popularidade</string>
+    <string name="dt_description">Descrição</string>
+    <string name="dt_data_release">Data</string>
+
+</resources>
