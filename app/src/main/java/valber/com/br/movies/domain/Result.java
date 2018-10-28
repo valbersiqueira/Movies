@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 public class Result implements Serializable {
@@ -50,6 +51,8 @@ public class Result implements Serializable {
     @SerializedName("release_date")
     @Expose
     private String releaseDate;
+
+    private Date dataSave;
 
     public Integer getVoteCount() {
         return voteCount;
@@ -161,6 +164,14 @@ public class Result implements Serializable {
 
     public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public Date getDataSave() {
+        return dataSave;
+    }
+
+    public void setDataSave(Date dataSave) {
+        this.dataSave = dataSave;
     }
 
 }

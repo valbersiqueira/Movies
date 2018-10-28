@@ -53,7 +53,7 @@ public class AsyncPopularMovie extends AsyncTask<Integer, Void, Void> {
                     for (Result movie : popular.getResults()) {
                         movies.add(movie);
                     }
-                    moviesInterface.resultMovies(movies);
+                    moviesInterface.resultMovies(popular);
                 }
             }
 

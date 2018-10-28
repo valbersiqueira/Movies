@@ -51,6 +51,11 @@ public class AdapterMovieRecy extends RecyclerView.Adapter<AdapterMovieRecy.MyVi
         return movielist.size();
     }
 
+    public void addItem(Result movie, int position) {
+        this.movielist.add(movie);
+        notifyItemInserted(position);
+    }
+
     public class MyViewHolder extends RecyclerView.ViewHolder{
          ImageView img;
          Button noteBtn;

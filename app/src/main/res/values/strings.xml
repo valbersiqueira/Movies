@@ -12,6 +12,8 @@
 
     <string name="action_settings">Settings</string>
 
+    <string name="page_count">page</string>
+
     <string name="dt_title">Título </string>
     <string name="dt_title_original">Título Orginal</string>
     <string name="dt_total_votos">Total de votos </string>

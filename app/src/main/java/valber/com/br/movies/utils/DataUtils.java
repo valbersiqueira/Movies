@@ -8,7 +8,7 @@ import java.util.Date;
 
 public class DataUtils {
 
-    public static String StringToLocale(String data) {
+    public static String stringToLocale(String data) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat format2 = new SimpleDateFormat("dd/MM/yyyy");
         Date date = null;
@@ -19,4 +19,22 @@ public class DataUtils {
         }
         return format2.format(date);
     }
+
+    public static String dateToString(){
+        SimpleDateFormat format  = new SimpleDateFormat("dd/MM/yyyy");
+
+        return format.format(new Date());
+    }
+
+    public static Date stringToDate(String data){
+        SimpleDateFormat format  = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = null;
+        try {
+            date = format.parse(data);
+        } catch (ParseException e) {
+            Log.e(DataUtils.class.getSimpleName(), e.getMessage());
+        }
+        return date;
+    }
+
 }
