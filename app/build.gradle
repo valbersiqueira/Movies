@@ -42,16 +42,22 @@ android {
         def OPEN_MOVIES_MAP_KEY = "OPEN_MOVIES_MAP_KEY"
         def OPEN_URL_PATTERN = "OPEN_URL_PATTERN"
         def OPEN_URL_IMAGEN = "OPEN_URL_IMAGEN"
+        def OPEN_URL_YOUTUBE = "OPEN_URL_YOUTUBE"
+        def OPEN_URL_YOUTUBE_TWO = "OPEN_URL_YOUTUBE_TWO"
 
         debug {
-            buildConfigField("String", OPEN_MOVIES_MAP_KEY, "\"850a3f6ee937c3f17c16c908a15aa6ac\"")
+            buildConfigField("String", OPEN_MOVIES_MAP_KEY, "\"******\"")
             buildConfigField("String", OPEN_URL_PATTERN, "\"https://api.themoviedb.org/3/movie/\"")
             buildConfigField("String", OPEN_URL_IMAGEN, "\"http://image.tmdb.org/t/p/w185//\"")
+            buildConfigField("String", OPEN_URL_YOUTUBE, "\"https://www.youtube.com/embed/\"")
+            buildConfigField("String", OPEN_URL_YOUTUBE_TWO, "\"https://www.youtube.com/watch?v=\"")
         }
         release {
-            buildConfigField("String", OPEN_MOVIES_MAP_KEY, "\"850a3f6ee937c3f17c16c908a15aa6ac\"")
+            buildConfigField("String", OPEN_MOVIES_MAP_KEY, "\"*****\"")
             buildConfigField("String", OPEN_URL_PATTERN, "\"https://api.themoviedb.org/3/movie/\"")
             buildConfigField("String", OPEN_URL_IMAGEN, "\"http://image.tmdb.org/t/p/w185//\"")
+            buildConfigField("String", OPEN_URL_YOUTUBE, "\"https://www.youtube.com/embed/\"")
+            buildConfigField("String", OPEN_URL_YOUTUBE_TWO, "\"https://www.youtube.com/watch?v=\"")
         }
     }
 

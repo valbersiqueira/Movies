@@ -1,4 +1,4 @@
-package valber.com.br.movies.views;
+package valber.com.br.movies;
 
 
 import android.content.ContentValues;
@@ -15,31 +15,35 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import valber.com.br.movies.DetailActivity;
-import valber.com.br.movies.MainActivity;
-import valber.com.br.movies.R;
 import valber.com.br.movies.adapter.AdapterMovieRecy;
 import valber.com.br.movies.async.AsyncPopularMovie;
 import valber.com.br.movies.data.MovieDbHelp;
 import valber.com.br.movies.data.contracts.MovieReaderContract;
+import valber.com.br.movies.domain.Lancamentos;
+import valber.com.br.movies.domain.LancamentosMetodo;
+import valber.com.br.movies.domain.MaisVotadosMetodo;
+import valber.com.br.movies.domain.Movie;
 import valber.com.br.movies.domain.Popular;
-import valber.com.br.movies.domain.Result;
+import valber.com.br.movies.domain.PopularMetodo;
 import valber.com.br.movies.utils.DataUtils;
+import valber.com.br.movies.utils.EnumService;
 import valber.com.br.movies.utilsInteface.ClickRecy;
 import valber.com.br.movies.utilsInteface.MoviesInterface;
+import valber.com.br.movies.utilsInteface.ServiceIntaface;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -57,16 +61,19 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
 
     private View view;
     private Unbinder unbinder;
-    private List<Result> movies;
-    private List<Result> moviesAux;
+    private List<Movie> movies;
     final String OBJETO = "MOVIE";
-    final String PAGE = "PAGE";
     private int page;
+    private PopularMetodo popularMetodo;
+    private LancamentosMetodo lancamentosMetodo;
+    private MaisVotadosMetodo maisVotadosMetodo;
 
     @BindView(R.id.my_recy)
     RecyclerView mRecyclerView;
     @BindView(R.id.progress_recy)
     ProgressBar progressBar;
+
+
 
     public MoviesFilmesFragment() {
         // Required empty public constructor
@@ -80,23 +87,58 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_movies_filmes, container, false);
         unbinder = ButterKnife.bind(this, view);
+        SharedPreferences preferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+        String typo = preferences.getString(getString(R.string.typoInterface), "POPULAR");
 
         this.movies = findAll();
         if (movies.size() == 0) {
-            new AsyncPopularMovie(this).execute(1);
+
+            new AsyncPopularMovie(this).execute(EnumService.valueOf(typo).getMetodo());
         } else {
-            if (movies.get(0).getDataSave().after(new Date())) {
+            Calendar dataNow = Calendar.getInstance();
+            dataNow.setTime(new Date());
+            dataNow.add(Calendar.DAY_OF_MONTH, -1);
+            Calendar data = Calendar.getInstance();
+            data.setTime(movies.get(0).getDataSave());
+            if (data.before(dataNow)) {
                 this.delete();
-                new AsyncPopularMovie(this).equals(1);
+                new AsyncPopularMovie(this).execute(popularMetodo);
             } else {
-                SharedPreferences preferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+                 preferences = getActivity().getPreferences(Context.MODE_PRIVATE);
                 page = preferences.getInt(getString(R.string.page_count), 1);
                 loaderRecyclerView();
             }
         }
-
+        setHasOptionsMenu(true);
 
         return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        getActivity().getMenuInflater().inflate(R.menu.menu_main, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_populares:
+                this.popularMetodo = (PopularMetodo) EnumService.POPULAR.getMetodo();
+                refreshRecy(EnumService.POPULAR.name());
+                new AsyncPopularMovie(this).execute(this.popularMetodo);
+                break;
+            case R.id.action_lancamento:
+                this.lancamentosMetodo = (LancamentosMetodo) EnumService.LANCAMENTO.getMetodo();
+                refreshRecy(EnumService.LANCAMENTO.name());
+                new AsyncPopularMovie(this).execute(this.lancamentosMetodo);
+                break;
+            case R.id.action_maisvotados:
+                this.maisVotadosMetodo = (MaisVotadosMetodo) EnumService.MAIS_VOTADOS.getMetodo();
+                refreshRecy(EnumService.MAIS_VOTADOS.name());
+                new AsyncPopularMovie(this).execute(this.maisVotadosMetodo);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -112,32 +154,46 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
 
 
     @Override
-    public void resultMovies(Popular popular) {
+    public void resultMovies(Object obj) {
+        List<Movie> movieList = new ArrayList<>();
+        int pagina = 1;
+        int totalPage = 1;
+        if (obj instanceof Popular) {
+            Popular popular = ((Popular) obj);
+            movieList =  popular.getMovies();
+            pagina = popular.getPage();
+            totalPage = popular.getTotalPages();
+        } else if (obj instanceof Lancamentos) {
+           Lancamentos lancamentos =((Lancamentos) obj);
+            movieList = lancamentos.getMovies();
+            pagina = lancamentos.getPage();
+            totalPage = lancamentos.getTotalPages();
+        }
         editor = getActivity().getPreferences(Context.MODE_PRIVATE).edit();
-        editor.putInt(String.valueOf(R.string.page_count), popular.getPage());
-        if (page == popular.getTotalPages()){
+        editor.putInt(String.valueOf(R.string.page_count), pagina);
+        if (page == totalPage) {
             Toast.makeText(getContext(), "Fim.", Toast.LENGTH_LONG).show();
         } else {
-            this.page = popular.getPage();
+            this.page = pagina;
             if (adapterMovieRecy != null) {
-                for (Result movie : popular.getResults()) {
+                for (Movie movie : movieList) {
                     adapterMovieRecy.addItem(movie, movies.size());
                 }
 
                 progressBar.setVisibility(View.INVISIBLE);
 
             } else {
-                this.movies = popular.getResults();
+                this.movies = movieList;
                 loaderRecyclerView();
             }
-            save(popular.getResults());
+            save(movieList);
         }
     }
 
     @Override
-    public void clicke(Result result) {
+    public void clicke(Movie movie) {
         Intent intent = new Intent(getActivity(), DetailActivity.class);
-        intent.putExtra(OBJETO, result);
+        intent.putExtra(OBJETO, movie);
         startActivity(intent);
     }
 
@@ -151,11 +207,15 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
                 @Override
                 public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
                     GridLayoutManager layoutManager = (GridLayoutManager) mRecyclerView.getLayoutManager();
-                    AdapterMovieRecy adp = (AdapterMovieRecy) mRecyclerView.getAdapter();
 
                     if (movies.size() == layoutManager.findLastCompletelyVisibleItemPosition() + 1) {
                         progressBar.setVisibility(View.VISIBLE);
-                        new AsyncPopularMovie(MoviesFilmesFragment.this).execute(page + 1);
+                        if (popularMetodo != null)
+                        new AsyncPopularMovie(MoviesFilmesFragment.this).execute(popularMetodo);
+                        if (lancamentosMetodo != null)
+                            new AsyncPopularMovie(MoviesFilmesFragment.this).execute(lancamentosMetodo);
+                        if (maisVotadosMetodo != null)
+                            new AsyncPopularMovie(MoviesFilmesFragment.this).execute(maisVotadosMetodo);
                     }
                 }
             });
@@ -170,11 +230,12 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
                 public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
                     GridLayoutManager layoutManager = (GridLayoutManager) mRecyclerView.getLayoutManager();
-                    AdapterMovieRecy adp = (AdapterMovieRecy) mRecyclerView.getAdapter();
-
+                    PopularMetodo popularMetodo= (PopularMetodo) EnumService.POPULAR.getMetodo();
+                    popularMetodo.setApiKey(BuildConfig.APPLICATION_ID);
+                    popularMetodo.setPage(page + 1);
                     if (movies.size() == layoutManager.findLastCompletelyVisibleItemPosition() + 1) {
                         progressBar.setVisibility(View.VISIBLE);
-                        new AsyncPopularMovie(MoviesFilmesFragment.this).execute(page + 1);
+                        new AsyncPopularMovie(MoviesFilmesFragment.this).execute(popularMetodo);
                     }
 
                 }
@@ -189,15 +250,15 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
 
     }
 
-    private void save(List<Result> movies) {
+    private void save(List<Movie> movies) {
         try {
             this.database = new MovieDbHelp(getContext()).getWritableDatabase();
-            for (Result movie : movies) {
+            for (Movie movie : movies) {
                 ContentValues content = new ContentValues();
                 content.put(MovieReaderContract.MovieEntry.BACKGROUND_PATH, movie.getBackdropPath());
                 content.put(MovieReaderContract.MovieEntry.DESCRICAO, movie.getOverview());
                 content.put(MovieReaderContract.MovieEntry.DATA_SAVE, String.valueOf(DataUtils.dateToString()));
-                content.put(MovieReaderContract.MovieEntry.ID, movie.getReleaseDate());
+                content.put(MovieReaderContract.MovieEntry.ID, movie.getId());
                 content.put(MovieReaderContract.MovieEntry.MEDIA_VOTOS, movie.getVoteAverage());
                 content.put(MovieReaderContract.MovieEntry.ORIGINAL_LANGUAFE, movie.getOriginalLanguage());
                 content.put(MovieReaderContract.MovieEntry.ORIGINAL_TITLE, movie.getOriginalTitle());
@@ -213,14 +274,14 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
         }
     }
 
-    private List<Result> findAll() {
-        List<Result> result = new ArrayList();
+    private List<Movie> findAll() {
+        List<Movie> result = new ArrayList();
         try {
             String sql = "SELECT * FROM " + MovieReaderContract.MovieEntry.TABLE_NAME;
             this.database = new MovieDbHelp(getContext()).getReadableDatabase();
             Cursor cursor = database.rawQuery(sql, null);
             while (cursor != null && cursor.moveToNext()) {
-                Result movie = new Result();
+                Movie movie = new Movie();
                 movie.setId(cursor.getInt(cursor.getColumnIndex(MovieReaderContract.MovieEntry.ID)));
                 movie.setBackdropPath(cursor.getString(cursor.getColumnIndex(MovieReaderContract.MovieEntry.BACKGROUND_PATH)));
                 movie.setOriginalLanguage(cursor.getString(cursor.getColumnIndex(MovieReaderContract.MovieEntry.ORIGINAL_LANGUAFE)));
@@ -247,5 +308,26 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
         this.database.delete(MovieReaderContract.MovieEntry.TABLE_NAME, null, null);
 
     }
+
+    private void refreshRecy(String typo){
+        delete();
+        if (typo.equals(EnumService.POPULAR.name())){
+            this.maisVotadosMetodo = null;
+            this.lancamentosMetodo = null;
+        }else if (typo.equals(EnumService.LANCAMENTO.name())){
+            this.maisVotadosMetodo = null;
+            this.popularMetodo = null;
+        } else {
+            this.lancamentosMetodo = null;
+            this.popularMetodo = null;
+        }
+        editor = getActivity().getPreferences(Context.MODE_PRIVATE).edit();
+        editor.putString(String.valueOf(R.string.typoInterface), typo);
+        if (this.adapterMovieRecy != null)
+            this.adapterMovieRecy.removeAll();
+        this.adapterMovieRecy = null;
+        this.progressBar.setVisibility(View.VISIBLE);
+    }
+
 
 }

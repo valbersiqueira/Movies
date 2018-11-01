@@ -1,40 +1,49 @@
 package valber.com.br.movies;
 
-import android.content.ContentValues;
-import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import valber.com.br.movies.data.MovieDbHelp;
-import valber.com.br.movies.data.contracts.MovieReaderContract;
-import valber.com.br.movies.domain.Result;
-import valber.com.br.movies.utils.ConvertDataException;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import valber.com.br.movies.adapter.AdapterVideo;
+import valber.com.br.movies.domain.Movie;
+import valber.com.br.movies.domain.MovieVideo;
+import valber.com.br.movies.domain.ResultVideo;
+import valber.com.br.movies.service.MoviesService;
+import valber.com.br.movies.service.impl.JsonConverterVideo;
 import valber.com.br.movies.utils.DataUtils;
+import valber.com.br.movies.utilsInteface.MovieVideoInterface;
 
 public class DetailActivity extends AppCompatActivity {
     final String OBJETO = "MOVIE";
 
-    private static Result movie;
+    private static Movie movie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +52,7 @@ public class DetailActivity extends AppCompatActivity {
 
         try {
 
-            this.movie = (Result) getIntent().getSerializableExtra(OBJETO);
+            this.movie = (Movie) getIntent().getSerializableExtra(OBJETO);
         } catch (Exception e) {
 
         }
@@ -54,10 +63,13 @@ public class DetailActivity extends AppCompatActivity {
     }
 
 
-    public static class FragmentDatail extends Fragment {
+    public static class FragmentDatail extends Fragment implements MovieVideoInterface {
 
         private View view;
         private Unbinder unbinder;
+
+        private AdapterVideo adapterVideo;
+        private RecyclerView.LayoutManager layoutManager;
 
         @BindView(R.id.img_movie_dt)
         ImageView pictureMovie;
@@ -83,6 +95,15 @@ public class DetailActivity extends AppCompatActivity {
         @BindView(R.id.txt_total_votos)
         TextView totalVotos;
 
+        @BindView(R.id.text_treiller)
+        TextView treiller;
+
+        @BindView(R.id.recy_video_dt)
+        RecyclerView recyclerView;
+
+        @BindView(R.id.progressBar_dt)
+        ProgressBar progressBar;
+
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -99,7 +120,7 @@ public class DetailActivity extends AppCompatActivity {
             this.totalVotos.setText(movie.getVoteCount() + "");
             this.data.setText(DataUtils.stringToLocale(movie.getReleaseDate()));
             this.description.setText(movie.getOverview());
-
+            new AsynckVideo(this).execute(movie.getId());
             return view;
         }
 
@@ -109,5 +130,58 @@ public class DetailActivity extends AppCompatActivity {
             this.unbinder.unbind();
         }
 
+        @Override
+        public void resultAsync(List<MovieVideo> resultVideos) {
+            if (resultVideos.size() == 0) treiller.setVisibility(View.INVISIBLE);
+            this.progressBar.setVisibility(View.INVISIBLE);
+            this.recyclerView.setHasFixedSize(true);
+            layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+            recyclerView.setLayoutManager(layoutManager);
+            adapterVideo = new AdapterVideo(resultVideos, getActivity());
+            recyclerView.setAdapter(adapterVideo);
+
+        }
+    }
+
+    public static class AsynckVideo extends AsyncTask<Integer, Void, Void>{
+
+        private MovieVideoInterface movieVideoInterface;
+
+        public AsynckVideo(MovieVideoInterface movieVideoInterface) {
+            this.movieVideoInterface = movieVideoInterface;
+        }
+
+        @Override
+        protected Void doInBackground(Integer... integers) {
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ResultVideo.class, new JsonConverterVideo())
+                    .create();
+
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(BuildConfig.OPEN_URL_PATTERN)
+                    .addConverterFactory(GsonConverterFactory.create(gson))
+                    .build();
+
+            Integer id = integers[0];
+
+            MoviesService service = retrofit.create(MoviesService.class);
+            Call<ResultVideo> call = service.getVideo(id,BuildConfig.OPEN_MOVIES_MAP_KEY);
+
+            call.enqueue(new Callback<ResultVideo>() {
+                @Override
+                public void onResponse(Call<ResultVideo> call, Response<ResultVideo> response) {
+                    if (response.body() != null) {
+                        ResultVideo movieVideo = response.body();
+                        movieVideoInterface.resultAsync(movieVideo.getMovieVideos());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResultVideo> call, Throwable throwable) {
+                    Log.e(DetailActivity.class.getSimpleName(), throwable.getMessage());
+                }
+            });
+            return null;
+        }
     }
 }

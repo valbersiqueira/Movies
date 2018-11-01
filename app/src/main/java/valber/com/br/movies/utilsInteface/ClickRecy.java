@@ -1,8 +1,8 @@
 package valber.com.br.movies.utilsInteface;
 
-import valber.com.br.movies.domain.Result;
+import valber.com.br.movies.domain.Movie;
 
 public interface ClickRecy {
 
-    void clicke(Result result);
+    void clicke(Movie movie);
 }

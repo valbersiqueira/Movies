@@ -4,7 +4,7 @@
                                              android:layout_width="match_parent"
                                              android:layout_height="match_parent"
                                              android:background="@drawable/background_recy"
-                                             tools:context="valber.com.br.movies.views.MoviesFilmesFragment">
+                                             tools:context="valber.com.br.movies.MoviesFilmesFragment">
 
     <android.support.v7.widget.RecyclerView
             android:id="@+id/my_recy"
@@ -15,6 +15,6 @@
     <ProgressBar android:layout_width="100dp" android:layout_height="100dp" app:layout_constraintStart_toStartOf="parent"
                  app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"
                  app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
-                 android:id="@+id/progress_recy" android:background="@color/colorPrimary" style="@style/Widget.AppCompat.ProgressBar"/>
+                 android:id="@+id/progress_recy"  style="@style/Widget.AppCompat.ProgressBar"/>
 
 </android.support.constraint.ConstraintLayout>

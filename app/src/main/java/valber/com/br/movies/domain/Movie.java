@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-public class Result implements Serializable {
+public class Movie implements Serializable {
 
     @SerializedName("vote_count")
     @Expose

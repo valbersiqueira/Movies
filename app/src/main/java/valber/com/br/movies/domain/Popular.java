@@ -18,9 +18,10 @@ public class Popular implements Serializable {
     @SerializedName("total_pages")
     @Expose
     private Integer totalPages;
+
     @SerializedName("results")
     @Expose
-    private List<Result> results = null;
+    private List<Movie> movies = null;
 
     public Integer getPage() {
         return page;
@@ -46,12 +47,12 @@ public class Popular implements Serializable {
         this.totalPages = totalPages;
     }
 
-    public List<Result> getResults() {
-        return results;
+    public List<Movie> getMovies() {
+        return movies;
     }
 
-    public void setResults(List<Result> results) {
-        this.results = results;
+    public void setMovies(List<Movie> movies) {
+        this.movies = movies;
     }
 
 

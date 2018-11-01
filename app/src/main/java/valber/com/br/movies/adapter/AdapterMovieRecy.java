@@ -6,21 +6,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+
 import com.squareup.picasso.Picasso;
+
 import valber.com.br.movies.BuildConfig;
 import valber.com.br.movies.R;
-import valber.com.br.movies.domain.Result;
+import valber.com.br.movies.domain.Movie;
 import valber.com.br.movies.utilsInteface.ClickRecy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AdapterMovieRecy extends RecyclerView.Adapter<AdapterMovieRecy.MyViewHolder> {
 
     final String DEBUG = AdapterMovieRecy.class.getSimpleName();
-    private List<Result> movielist;
+    private List<Movie> movielist;
     private ClickRecy clickRecy;
 
-    public AdapterMovieRecy(final List<Result> movielist, final ClickRecy clickRecy) {
+    public AdapterMovieRecy(final List<Movie> movielist, final ClickRecy clickRecy) {
         this.movielist = movielist;
         this.clickRecy = clickRecy;
     }
@@ -34,8 +37,8 @@ public class AdapterMovieRecy extends RecyclerView.Adapter<AdapterMovieRecy.MyVi
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, final int position) {
-        Result movie = this.movielist.get(position);
-        Picasso.get().load(BuildConfig.OPEN_URL_IMAGEN+ movie.getPosterPath()).into(holder.img);
+        Movie movie = this.movielist.get(position);
+        Picasso.get().load(BuildConfig.OPEN_URL_IMAGEN + movie.getPosterPath()).into(holder.img);
         holder.noteBtn.setText(String.valueOf(movie.getVoteAverage()));
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -51,14 +54,20 @@ public class AdapterMovieRecy extends RecyclerView.Adapter<AdapterMovieRecy.MyVi
         return movielist.size();
     }
 
-    public void addItem(Result movie, int position) {
+    public void addItem(Movie movie, int position) {
         this.movielist.add(movie);
         notifyItemInserted(position);
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder{
-         ImageView img;
-         Button noteBtn;
+    public void removeAll() {
+        this.movielist = new ArrayList<>();
+        notifyDataSetChanged();
+
+    }
+
+    public class MyViewHolder extends RecyclerView.ViewHolder {
+        ImageView img;
+        Button noteBtn;
 
         public MyViewHolder(View itemView) {
             super(itemView);
