@@ -90,6 +90,14 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
         SharedPreferences preferences = getActivity().getPreferences(Context.MODE_PRIVATE);
         String typo = preferences.getString(getString(R.string.typoInterface), "POPULAR");
 
+        if (typo.equals(EnumService.POPULAR.name())){
+           this.popularMetodo = (PopularMetodo) EnumService.valueOf(typo).getMetodo();
+        }else if (typo.equals(EnumService.LANCAMENTO.name())){
+            this.lancamentosMetodo = (LancamentosMetodo) EnumService.valueOf(typo).getMetodo();
+        } else {
+            this.maisVotadosMetodo = (MaisVotadosMetodo) EnumService.valueOf(typo).getMetodo();
+        }
+
         this.movies = findAll();
         if (movies.size() == 0) {
 
@@ -210,12 +218,7 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
 
                     if (movies.size() == layoutManager.findLastCompletelyVisibleItemPosition() + 1) {
                         progressBar.setVisibility(View.VISIBLE);
-                        if (popularMetodo != null)
-                        new AsyncPopularMovie(MoviesFilmesFragment.this).execute(popularMetodo);
-                        if (lancamentosMetodo != null)
-                            new AsyncPopularMovie(MoviesFilmesFragment.this).execute(lancamentosMetodo);
-                        if (maisVotadosMetodo != null)
-                            new AsyncPopularMovie(MoviesFilmesFragment.this).execute(maisVotadosMetodo);
+                        carregarAsyncScroll();
                     }
                 }
             });
@@ -230,10 +233,8 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
                 public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
                     GridLayoutManager layoutManager = (GridLayoutManager) mRecyclerView.getLayoutManager();
-                    PopularMetodo popularMetodo= (PopularMetodo) EnumService.POPULAR.getMetodo();
-                    popularMetodo.setApiKey(BuildConfig.APPLICATION_ID);
-                    popularMetodo.setPage(page + 1);
                     if (movies.size() == layoutManager.findLastCompletelyVisibleItemPosition() + 1) {
+                        carregarAsyncScroll();
                         progressBar.setVisibility(View.VISIBLE);
                         new AsyncPopularMovie(MoviesFilmesFragment.this).execute(popularMetodo);
                     }
@@ -329,5 +330,18 @@ public class MoviesFilmesFragment extends Fragment implements MoviesInterface, C
         this.progressBar.setVisibility(View.VISIBLE);
     }
 
+
+    private void carregarAsyncScroll(){
+        if (popularMetodo != null) {
+            popularMetodo.setPage(page + 1);
+            new AsyncPopularMovie(MoviesFilmesFragment.this).execute(popularMetodo);
+        } else if (lancamentosMetodo != null){
+            lancamentosMetodo.setPage(page +1);
+            new AsyncPopularMovie(MoviesFilmesFragment.this).execute(lancamentosMetodo);
+        }else if (maisVotadosMetodo != null){
+            maisVotadosMetodo.setPage(page+1);
+            new AsyncPopularMovie(MoviesFilmesFragment.this).execute(maisVotadosMetodo);
+        }
+    }
 
 }
